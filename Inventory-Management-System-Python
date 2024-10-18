@@ -1,0 +1,151 @@
+# Import necessary modules
+import csv
+
+# Class for a product
+class Product:
+    def __init__(self, product_id, name, quantity, price):
+        self.product_id = product_id
+        self.name = name
+        self.quantity = quantity
+        self.price = price
+
+    def __repr__(self):
+        return f"Product ID: {self.product_id}, Name: {self.name}, Quantity: {self.quantity}, Price: {self.price}"
+
+# Class for managing inventory
+class InventoryManagementSystem:
+    def __init__(self, filename):
+        self.filename = filename
+        self.products = self.load_products()
+
+    # Load products from CSV file
+    def load_products(self):
+        products = []
+        try:
+            with open(self.filename, 'r') as file:
+                reader = csv.reader(file)
+                next(reader)  # Skip header
+                for row in reader:
+                    product_id, name, quantity, price = row
+                    products.append(Product(product_id, name, int(quantity), float(price)))
+        except FileNotFoundError:
+            print("File not found. A new file will be created.")
+        return products
+
+    # Save products to CSV file
+    def save_products(self):
+        with open(self.filename, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Product ID", "Name", "Quantity", "Price"])
+            for product in self.products:
+                writer.writerow([product.product_id, product.name, product.quantity, product.price])
+
+    # Add a new product
+    def add_product(self, product_id, name, quantity, price):
+        new_product = Product(product_id, name, quantity, price)
+        self.products.append(new_product)
+        self.save_products()
+        print(f"Product '{name}' has been added successfully.")
+
+    # Update an existing product
+    def update_product(self, product_id, name=None, quantity=None, price=None):
+        for product in self.products:
+            if product.product_id == product_id:
+                if name:
+                    product.name = name
+                if quantity:
+                    product.quantity = quantity
+                if price:
+                    product.price = price
+                self.save_products()
+                print(f"Product with ID {product_id} has been updated.")
+                return
+        print(f"Product with ID {product_id} not found.")
+
+    # Delete a product
+    def delete_product(self, product_id):
+        self.products = [product for product in self.products if product.product_id != product_id]
+        self.save_products()
+        print(f"Product with ID {product_id} has been deleted.")
+
+    # Search for a product by ID
+    def search_product(self, product_id):
+        for product in self.products:
+            if product.product_id == product_id:
+                print(product)
+                return
+        print(f"Product with ID {product_id} not found.")
+
+    # List all products
+    def list_products(self):
+        if not self.products:
+            print("No products in the inventory.")
+        else:
+            for product in self.products:
+                print(product)
+
+    # Generate report for total inventory value
+    def generate_report(self):
+        total_value = 0
+        for product in self.products:
+            total_value += product.quantity * product.price
+        print(f"Total inventory value: ${total_value:.2f}")
+
+# Main menu
+def menu():
+    system = InventoryManagementSystem('inventory.csv')
+
+    while True:
+        print("\n===== Inventory Management System =====")
+        print("1. Add a product")
+        print("2. Update a product")
+        print("3. Delete a product")
+        print("4. Search for a product by ID")
+        print("5. List all products")
+        print("6. Generate a report")
+        print("7. Exit")
+
+        choice = input("Choose an action: ")
+
+        if choice == '1':
+            product_id = input("Enter product ID: ")
+            name = input("Enter product name: ")
+            quantity = int(input("Enter product quantity: "))
+            price = float(input("Enter product price: "))
+            system.add_product(product_id, name, quantity, price)
+
+        elif choice == '2':
+            product_id = input("Enter product ID to update: ")
+            name = input("Enter new product name (press Enter to skip): ")
+            quantity = input("Enter new product quantity (press Enter to skip): ")
+            price = input("Enter new product price (press Enter to skip): ")
+
+            quantity = int(quantity) if quantity else None
+            price = float(price) if price else None
+
+            system.update_product(product_id, name, quantity, price)
+
+        elif choice == '3':
+            product_id = input("Enter product ID to delete: ")
+            system.delete_product(product_id)
+
+        elif choice == '4':
+            product_id = input("Enter product ID to search: ")
+            system.search_product(product_id)
+
+        elif choice == '5':
+            system.list_products()
+
+        elif choice == '6':
+            system.generate_report()
+
+        elif choice == '7':
+            print("Exiting the program...")
+            break
+
+        else:
+            print("Invalid choice, please try again.")
+
+# Run the program
+if __name__ == "__main__":
+    menu()
